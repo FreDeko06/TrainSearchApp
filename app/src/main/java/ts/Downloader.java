@@ -3,8 +3,6 @@ package ts;
 import android.os.Handler;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;

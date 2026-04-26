@@ -25,26 +25,5 @@ public class NativeLib {
             this.time = time;
             this.headsign = headsign;
         }
-
-        @Override
-        public String toString() {
-            int now = LocalDateTime.now().toLocalTime().toSecondOfDay();
-            int delta = time - now;
-            String absoluteTime = format(time);
-            String deltaTime = format(Math.abs(delta));
-            if (delta < 0) {
-                deltaTime = "+ " + deltaTime;
-            }else {
-                deltaTime = "- " + deltaTime;
-            }
-            return String.format("%s Uhr: %s        %s\nnach %s", absoluteTime, routeName, deltaTime, nextStop);
-        }
-
-        private String format(int time) {
-            int seconds = time % 60;
-            int minutes = ((time - seconds) / 60) % 60;
-            int hours = (time - seconds - minutes * 60) / 60 / 60;
-            return String.format("%02d:%02d", hours, minutes);
-        }
     }
 }
