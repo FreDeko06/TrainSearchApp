@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             mapProgress.setText("");
             timeProgress.setText("");
             status.setText("Lade Daten...");
-            Downloader pbf = new Downloader(new URL("http://192.168.2.122/rail.pbf"), new File(getFilesDir(), "rail.pbf"));
+            Downloader pbf = new Downloader(new URL("http://192.168.0.102/rail.pbf"), new File(getFilesDir(), "rail.pbf"));
             pbf.onFinish((s) -> {
                 runOnUiThread(() -> mapProgress.setText("Fertig!"));
             });

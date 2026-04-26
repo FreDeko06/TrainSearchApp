@@ -18,12 +18,14 @@ public class NativeLib {
         public String nextStop;
         public int time;
         public String headsign;
+        public int delay;
 
-        public Data(String routeName, String nextStop, int time, String headsign) {
+        public Data(String routeName, String nextStop, int time, String headsign, int delay) {
             this.routeName = routeName;
             this.nextStop = nextStop;
             this.time = time;
             this.headsign = headsign;
+            this.delay = delay;
         }
     }
 }

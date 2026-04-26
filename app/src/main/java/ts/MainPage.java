@@ -17,8 +17,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Granularity;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationToken;
+import com.google.android.gms.tasks.OnTokenCanceledListener;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -94,45 +99,65 @@ public class MainPage extends AppCompatActivity {
         adapter.clear();
         int now = LocalDateTime.now().toLocalTime().toSecondOfDay();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            items.add(new NativeLib.Data("Kein Standort!", "...", now, ""));
+            items.add(new NativeLib.Data("Kein Standort!", "...", now, "", 0));
             runOnUiThread(() -> adapter.notifyDataSetChanged());
             return;
         }
-        items.add(new NativeLib.Data("...", "...", now, ""));
+        items.add(new NativeLib.Data("...", "...", now, "", 0));
         runOnUiThread(() -> adapter.notifyDataSetChanged());
-        locationClient.getLastLocation().addOnSuccessListener(this, location -> {
+        CurrentLocationRequest req = new CurrentLocationRequest.Builder().setDurationMillis(5000).setGranularity(Granularity.GRANULARITY_FINE).setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY).build();
+        locationClient.getCurrentLocation(req, new CancellationToken() {
+            @NonNull
+            @Override
+            public CancellationToken onCanceledRequested(@NonNull OnTokenCanceledListener onTokenCanceledListener) {
+                return null;
+            }
+
+            @Override
+            public boolean isCancellationRequested() {
+                return false;
+            }
+        }).addOnSuccessListener(this, location -> {
             new Thread(() -> {
-                int jump = 0;
-                if (location != null) {
-                    double lat = location.getLatitude();
-                    double lon = location.getLongitude();
-                    TextView loc = findViewById(R.id.loc);
-                    NativeLib.Data[] trains = NativeLib.getData(this.data, lat, lon, -1);
-                    runOnUiThread(() -> loc.setText(String.format("Location: %f, %f (%d trips)", lat, lon, trains.length)));
-                    runOnUiThread(() -> adapter.clear());
-                    if (trains.length == 0) {
-                        items.add(new NativeLib.Data("Keine Schiene", "xxx", now, ""));
-                    }
-                    int i = 0;
-                    for (NativeLib.Data train: trains) {
-                        if (train.time > now && jump == 0) {
-                            jump = i;
+                try {
+                    int jump = 0;
+                    if (location != null) {
+                        double lat = location.getLatitude();
+                        double lon = location.getLongitude();
+                        TextView loc = findViewById(R.id.loc);
+                        NativeLib.Data[] trains = NativeLib.getData(this.data, lat, lon, -1);
+                        runOnUiThread(() -> loc.setText(String.format("Location: %f, %f (%d trips)", lat, lon, trains.length)));
+                        runOnUiThread(() -> adapter.clear());
+                        if (trains.length == 0) {
+                            items.add(new NativeLib.Data("Keine Schiene", "xxx", now, "", 0));
                         }
-                        runOnUiThread(() -> items.add(train));
-                        i += 1;
+                        int i = 0;
+                        for (NativeLib.Data train: trains) {
+                            if (train.time > now && jump == 0) {
+                                jump = i;
+                            }
+                            runOnUiThread(() -> items.add(train));
+                            i += 1;
+                        }
+                    }else {
+                        items.add(new NativeLib.Data("Fehler", "xxx", now, "", 0));
                     }
-                }else {
-                    items.add(new NativeLib.Data("Fehler", "xxx", now, ""));
+                    int j = jump;
+                    runOnUiThread(() -> {
+                        adapter.notifyDataSetChanged();
+                        list.setSelection(j);
+                        if (j > 2)
+                            list.smoothScrollToPosition(j-2);
+                        else
+                            list.smoothScrollToPosition(0);
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        items.add(new NativeLib.Data("Exception", e.getMessage(), now, e.toString(), 0));
+                        adapter.notifyDataSetChanged();
+                    });
+                    e.printStackTrace();
                 }
-                int j = jump;
-                runOnUiThread(() -> {
-                    adapter.notifyDataSetChanged();
-                    list.setSelection(j);
-                    if (j > 2)
-                        list.smoothScrollToPosition(j-2);
-                    else
-                        list.smoothScrollToPosition(0);
-                });
             }).start();
         });
     }

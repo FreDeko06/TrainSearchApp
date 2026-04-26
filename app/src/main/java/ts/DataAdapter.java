@@ -36,11 +36,22 @@ public class DataAdapter extends ArrayAdapter<NativeLib.Data> {
         TextView timeLeft = convertView.findViewById(R.id.timeLeft);
         TextView next = convertView.findViewById(R.id.next);
         TextView headsign = convertView.findViewById(R.id.headsign);
+        TextView delay = convertView.findViewById(R.id.delay);
 
 
         route.setText(data.routeName);
-        time.setText(format(data.time));
+        time.setText(format(data.time - data.delay));
         headsign.setText(data.headsign);
+
+        String delStr = String.format("%.1f", (float) data.delay / 60.0);
+        if (data.delay >= 0) {
+            delStr = "+ " + delStr;
+        }else {
+            delStr = "- " + delStr;
+        }
+
+        delay.setText(delStr);
+
 
         int delta = LocalDateTime.now().toLocalTime().toSecondOfDay() - data.time;
         String deltaTime = format(Math.abs(delta));
@@ -51,7 +62,7 @@ public class DataAdapter extends ArrayAdapter<NativeLib.Data> {
             deltaTime = "+ " + deltaTime;
             convertView.setBackgroundColor(Color.argb(100, 255, 0, 0));
         }
-        if (Math.abs(delta) < 2 * 60) {
+        if (Math.abs(delta) < 5 * 60) {
             convertView.setBackgroundColor(Color.argb(100, 0, 255, 0));
         }
 
