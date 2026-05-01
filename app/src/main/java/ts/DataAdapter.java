@@ -43,7 +43,7 @@ public class DataAdapter extends ArrayAdapter<NativeLib.Data> {
         time.setText(format(data.time - data.delay));
         headsign.setText(data.headsign);
 
-        String delStr = String.format("%.1f", (float) data.delay / 60.0);
+        String delStr = String.format("%.1f", Math.abs((float) data.delay / 60.0));
         if (data.delay >= 0) {
             delStr = "+ " + delStr;
         }else {

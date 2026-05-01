@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -84,6 +85,39 @@ public class MainPage extends AppCompatActivity {
                     }).show();
         });
 
+    }
+
+    private Handler handler;
+
+    private void startUpdater(MainPage activity) {
+        handler = new Handler();
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                        handler.postDelayed(this, 5000);
+                    }
+                });
+            }
+        };
+
+        handler.postDelayed(task, 5000);
+
+    }
+
+    @Override
+    protected void onResume() {
+        startUpdater(this);
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        handler.removeCallbacksAndMessages(null);
+        super.onStop();
     }
 
     @Override
