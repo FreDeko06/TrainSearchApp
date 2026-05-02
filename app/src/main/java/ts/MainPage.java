@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -40,6 +42,7 @@ public class MainPage extends AppCompatActivity {
     private List<NativeLib.Data> items;
     private long data;
     private FusedLocationProviderClient locationClient;
+    private ProgressBar throbber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +57,7 @@ public class MainPage extends AppCompatActivity {
         Intent intent = getIntent();
         data = intent.getLongExtra("data", 0);
         System.out.println(data);
+        throbber = findViewById(R.id.throbber);
 
         list = findViewById(R.id.trainList);
         items = new ArrayList<>();
@@ -133,12 +137,14 @@ public class MainPage extends AppCompatActivity {
         adapter.clear();
         int now = LocalDateTime.now().toLocalTime().toSecondOfDay();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            items.add(new NativeLib.Data("Kein Standort!", "...", now, "", 0));
+            items.add(new NativeLib.Data("Kein Standort!"));
             runOnUiThread(() -> adapter.notifyDataSetChanged());
             return;
         }
-        items.add(new NativeLib.Data("...", "...", now, "", 0));
-        runOnUiThread(() -> adapter.notifyDataSetChanged());
+        runOnUiThread(() -> {
+            adapter.notifyDataSetChanged();
+            throbber.setVisibility(View.VISIBLE);
+        });
         CurrentLocationRequest req = new CurrentLocationRequest.Builder().setDurationMillis(5000).setGranularity(Granularity.GRANULARITY_FINE).setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY).build();
         locationClient.getCurrentLocation(req, new CancellationToken() {
             @NonNull
@@ -163,7 +169,7 @@ public class MainPage extends AppCompatActivity {
                         runOnUiThread(() -> loc.setText(String.format("Location: %f, %f (%d trips)", lat, lon, trains.length)));
                         runOnUiThread(() -> adapter.clear());
                         if (trains.length == 0) {
-                            items.add(new NativeLib.Data("Keine Schiene", "xxx", now, "", 0));
+                            runOnUiThread(() -> items.add(new NativeLib.Data("Keine Schiene")));
                         }
                         int i = 0;
                         for (NativeLib.Data train: trains) {
@@ -174,8 +180,9 @@ public class MainPage extends AppCompatActivity {
                             i += 1;
                         }
                     }else {
-                        items.add(new NativeLib.Data("Fehler", "xxx", now, "", 0));
+                        runOnUiThread(() -> items.add(new NativeLib.Data("Kein Standort")));
                     }
+                    runOnUiThread(() -> throbber.setVisibility(View.INVISIBLE));
                     int j = jump;
                     runOnUiThread(() -> {
                         adapter.notifyDataSetChanged();
@@ -187,8 +194,9 @@ public class MainPage extends AppCompatActivity {
                     });
                 } catch (Exception e) {
                     runOnUiThread(() -> {
-                        items.add(new NativeLib.Data("Exception", e.getMessage(), now, e.toString(), 0));
+                        items.add(new NativeLib.Data(e.toString()));
                         adapter.notifyDataSetChanged();
+                        throbber.setVisibility(View.INVISIBLE);
                     });
                     e.printStackTrace();
                 }
