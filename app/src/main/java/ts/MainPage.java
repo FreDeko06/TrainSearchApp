@@ -63,6 +63,12 @@ public class MainPage extends AppCompatActivity {
         items = new ArrayList<>();
         adapter = new DataAdapter(this, items);
         list.setAdapter(adapter);
+        list.setOnItemClickListener((parent, view, position, id) -> {
+            NativeLib.Data data = this.items.get(position);
+            Intent moreInfoIntent = new Intent(this, MoreInformation.class);
+            moreInfoIntent.putExtra("data", data);
+            startActivity(moreInfoIntent);
+        });
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 100);
