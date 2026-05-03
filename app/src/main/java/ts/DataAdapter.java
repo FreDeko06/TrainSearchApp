@@ -43,15 +43,16 @@ public class DataAdapter extends ArrayAdapter<NativeLib.Data> {
         time.setText(NativeLib.Data.format(data.time - data.delay));
         headsign.setText(data.headsign);
 
-        String delStr = String.format("%.1f", Math.abs((float) data.delay / 60.0));
-        if (data.delay >= 0) {
-            delStr = "+ " + delStr;
+        if (data.canceled) {
+            delay.setText("Ausfall");
+            delay.setVisibility(View.VISIBLE);
+        }else
+        if (data.delay != 0) {
+            delay.setText(NativeLib.Data.format(data.time));
+            delay.setVisibility(View.VISIBLE);
         }else {
-            delStr = "- " + delStr;
+            delay.setVisibility(View.INVISIBLE);
         }
-
-        delay.setText(delStr);
-
 
         int delta = LocalDateTime.now().toLocalTime().toSecondOfDay() - data.time;
         String deltaTime = NativeLib.Data.format(Math.abs(delta));
