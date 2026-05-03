@@ -88,6 +88,7 @@ public class MainPage extends AppCompatActivity {
                     .setPositiveButton("Ja", (dialog, which) -> {
                         File binFile = new File(getFilesDir(), "data.bin");
                         binFile.delete();
+                        NativeLib.destroy(this.data);
                         finish();
                     })
                     .setNegativeButton("Nein", (dialog, which) -> {
